@@ -1,0 +1,28 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+group 'com.mgabriel'
+
+def chronicleVersion = '4.6.77'
+def reactorVersion = '3.1.7.RELEASE'
+
+dependencies {
+    compile "io.projectreactor:reactor-core:$reactorVersion"
+    compile "net.openhft:chronicle-queue:$chronicleVersion"
+}
+
+
+
+
+
+
