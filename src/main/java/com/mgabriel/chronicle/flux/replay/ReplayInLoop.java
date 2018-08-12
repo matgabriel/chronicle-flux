@@ -1,7 +1,6 @@
 package com.mgabriel.chronicle.flux.replay;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -10,12 +9,14 @@ import org.slf4j.LoggerFactory;
 
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
+import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
 public class ReplayInLoop<T> implements Function<Flux<T>, Publisher<ReplayValue<T>>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayInLoop.class);
     private final Duration delayBeforeRestart;
+    private final Boolean TOKEN = Boolean.FALSE;
 
     public ReplayInLoop(Duration delayBeforeRestart) {
         this.delayBeforeRestart = delayBeforeRestart;
@@ -45,9 +46,8 @@ public class ReplayInLoop<T> implements Function<Flux<T>, Publisher<ReplayValue<
 
     private void wrapValues(Flux<T> source, FluxSink<Flux<ReplayValue<T>>> sink) {
         AtomicBoolean firstValueSent = new AtomicBoolean(false);
-        Flux<ReplayValue<T>> nextFlux = source.delaySequence(delayBeforeRestart).map(wrapAsReplayValue(firstValueSent)).doOnNext(v -> System.out
-                .println("\t\t\taaaa "+ Instant.now()+"   " +v));
-        sink.next(Flux.defer(() -> nextFlux));
+        Flux<ReplayValue<T>> nextFlux = source.delaySubscription(delayBeforeRestart).map(wrapAsReplayValue(firstValueSent));
+        sink.next(nextFlux);
     }
 
     @NotNull

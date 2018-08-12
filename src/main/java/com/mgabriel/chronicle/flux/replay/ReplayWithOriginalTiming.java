@@ -10,10 +10,16 @@ import reactor.core.publisher.Flux;
 
 public class ReplayWithOriginalTiming<T> implements Function<Flux<T>, Publisher<T>> {
     private final Function<T, Long> timestampExtractor;
+    private final double timeAcceleration;
     private final Timed<T> TOKEN = new TimedValue<>(0, null);
 
     public ReplayWithOriginalTiming(Function<T, Long> timestampExtractor) {
+        this(timestampExtractor, 1);
+    }
+
+    public ReplayWithOriginalTiming(Function<T, Long> timestampExtractor, double timeAcceleration) {
         this.timestampExtractor = timestampExtractor;
+        this.timeAcceleration = timeAcceleration;
     }
 
     @Override
@@ -33,7 +39,7 @@ public class ReplayWithOriginalTiming<T> implements Function<Flux<T>, Publisher<
 
     private Function<TimedValuePair<T>, ValueToDelay<T>> calculateDelay() {
         return tvp -> {
-            long timeDifference = tvp.timeDifference();
+            long timeDifference = Double.valueOf(tvp.timeDifference() / timeAcceleration).longValue();
             if (timeDifference < 0 || tvp.first == TOKEN) {
                 timeDifference = 0;
             }
@@ -42,8 +48,7 @@ public class ReplayWithOriginalTiming<T> implements Function<Flux<T>, Publisher<
     }
 
     private Function<ValueToDelay<T>, Publisher<?>> applyDelay() {
-        return vtd -> {
-            return Flux.just(TOKEN).delayElements(ofMillis(vtd.delay()));};
+        return vtd -> Flux.just(TOKEN).delayElements(ofMillis(vtd.delay()));
     }
 
     private static class TimedValuePair<T> {

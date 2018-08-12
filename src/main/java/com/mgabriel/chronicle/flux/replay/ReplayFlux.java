@@ -4,9 +4,10 @@ import java.time.Duration;
 import java.util.function.Function;
 
 import reactor.core.CoreSubscriber;
+import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
 
-public class ReplayFlux<T> extends Flux<T> {
+public class ReplayFlux<T> extends Flux<T> implements Scannable {
 
     private final Flux<T> source;
     private final Function<T, Long> timestampExtractor;
@@ -18,14 +19,31 @@ public class ReplayFlux<T> extends Flux<T> {
 
     @Override
     public void subscribe(CoreSubscriber<? super T> actual) {
-
+        source.subscribe(actual);
     }
 
-    public ReplayLoopFlux<T> inLoop(){
+    @Override
+    public Object scanUnsafe(Attr attr) {
+        return getScannable().scanUnsafe(attr);
+    }
+
+    private Scannable getScannable() {
+        return (Scannable) source;
+    }
+
+    public ReplayFlux<T> withOriginalTiming(){
+        return new ReplayFlux<>(source.compose(new ReplayWithOriginalTiming<>(timestampExtractor)), timestampExtractor);
+    }
+
+    public ReplayFlux<T> withTimeAcceleration(double acceleration){
+        return new ReplayFlux<>(source.compose(new ReplayWithOriginalTiming<>(timestampExtractor, acceleration)), timestampExtractor);
+    }
+
+    public Flux<ReplayValue<T>> inLoop(){
         return inLoop(Duration.ofMillis(0));
     }
 
-    public ReplayLoopFlux<T> inLoop(Duration delayBeforeLoopRestart){
-        return new ReplayLoopFlux<>(source, timestampExtractor, delayBeforeLoopRestart);
+    public Flux<ReplayValue<T>> inLoop(Duration delayBeforeLoopRestart){
+        return source.compose(new ReplayInLoop<>(delayBeforeLoopRestart));
     }
 }
