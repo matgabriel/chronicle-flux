@@ -8,7 +8,6 @@ import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
 
 public class ReplayFlux<T> extends Flux<T> implements Scannable {
-
     private final Flux<T> source;
     private final Function<T, Long> timestampExtractor;
 

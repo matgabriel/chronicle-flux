@@ -3,7 +3,6 @@ package com.mgabriel.chronicle.flux.replay;
 import java.time.Duration;
 import java.time.Instant;
 
-import com.mgabriel.chronicle.flux.WrappedValue;
 import reactor.core.publisher.Flux;
 
 public class ReplayWithOriginalTimingDemo {

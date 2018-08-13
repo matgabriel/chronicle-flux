@@ -1,7 +1,5 @@
 package com.mgabriel.chronicle.flux.replay;
 
-import com.mgabriel.chronicle.flux.WrappedValue;
-
 public interface ReplayValue<T> extends WrappedValue<T> {
 
     /**

@@ -26,6 +26,7 @@ dependencies {
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "io.projectreactor:reactor-core:$reactorVersion"
     compile "net.openhft:chronicle-queue:$chronicleVersion"
+    testCompile "com.google.guava:guava:26.0-jre"
 }
 
 
