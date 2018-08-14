@@ -1,4 +1,9 @@
 package com.mgabriel.chronicle.flux.replay;
 
-public interface TimedReplayValue<T> extends Timed<T>, ReplayValue<T>{
+/**
+ * Wraps a {@link ReplayValue} with its timestamp.
+ *
+ * @param <T> data type
+ */
+interface TimedReplayValue<T> extends Timed<T>, ReplayValue<T>{
 }

@@ -10,7 +10,7 @@ import reactor.core.publisher.Flux;
 /**
  * Reactive store used to store and replay a Flux.
  *
- * @param <T> the value type
+ * @param <T> the data type
  */
 public interface FluxStore<T> {
 

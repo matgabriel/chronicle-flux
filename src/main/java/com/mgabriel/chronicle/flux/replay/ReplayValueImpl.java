@@ -2,6 +2,10 @@ package com.mgabriel.chronicle.flux.replay;
 
 import java.util.Objects;
 
+/**
+ * Default implementation of a {@link ReplayValue}
+ * @param <T> data type
+ */
 public class ReplayValueImpl<T> implements ReplayValue<T>{
     private final boolean isLoopReset;
     private final T value;

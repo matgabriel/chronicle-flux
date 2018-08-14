@@ -4,17 +4,17 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
 /**
  * A transformer that takes a source flux and replays it in a loop.
  * The values are wrapped in a {@link ReplayValue} object to indicate when the loop restarts.
- * This information can be used by the application to perform some action when the loop restarts (clear caches, etc.)
+ * This information can be used by the application to perform some actions when the loop restarts (clear caches, etc.)
  *
  * It is possible to specify a delay before each loop restart.
- * Please note that if you chain
+ * Please note that if you add other operators in the reactive stream after this transformer, you might not see the
+ * impact of the restart delay since it will be applied as soon as items are requested on the subscription.
  *
  * @param <T> data type
  */
@@ -53,7 +53,6 @@ public class ReplayInLoop<T> implements Function<Flux<T>, Publisher<ReplayValue<
 
     }
 
-    @NotNull
     private Function<T, ReplayValue<T>> wrapAsReplayValue(AtomicBoolean firstValueSent) {
         return val -> {
             if (!firstValueSent.getAndSet(true)) {

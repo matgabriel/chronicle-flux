@@ -2,11 +2,16 @@ package com.mgabriel.chronicle.flux.replay;
 
 import java.util.Objects;
 
-public class TimedValue<T> implements Timed<T> {
+/**
+ * Default implementation of a {@link Timed} value.
+ *
+ * @param <T>
+ */
+class TimedValue<T> implements Timed<T> {
     private final long time;
     private final T value;
 
-    public TimedValue(long time, T value) {
+    TimedValue(long time, T value) {
         this.time = time;
         this.value = value;
     }

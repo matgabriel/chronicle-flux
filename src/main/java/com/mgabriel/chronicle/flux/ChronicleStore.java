@@ -38,7 +38,7 @@ public class ChronicleStore<T> implements FluxStore<T> {
     /**
      *
      * @param path path were the Chronicle Queue will store the files.
-     *              This path should not be a network file system (see https://github.com/OpenHFT/Chronicle-Queue for more details)
+     *              This path should not be a network file system (see <a href="https://github.com/OpenHFT/Chronicle-Queue">the Chronicle queue documentation for more detail</a>
      * @param serializer data serializer
      * @param deserializer data deserializer
      */
@@ -208,7 +208,7 @@ public class ChronicleStore<T> implements FluxStore<T> {
 
         /**
          * @param path path were the Chronicle Queue will store the files.
-         *             This path should not be a network file system (see https://github.com/OpenHFT/Chronicle-Queue for more details)
+         *             This path should not be a network file system (see <a href="https://github.com/OpenHFT/Chronicle-Queue">the Chronicle queue documentation for more detail</a>
          * @return this builder
          */
         public ChronicleStoreBuilder<T> path(String path) {

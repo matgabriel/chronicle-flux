@@ -1,5 +1,6 @@
 package com.mgabriel.chronicle.flux.replay;
 
+
 class ValueToDelay<T> implements WrappedValue<T> {
     private final long delay;
     private final T value;
@@ -14,7 +15,7 @@ class ValueToDelay<T> implements WrappedValue<T> {
         return value;
     }
 
-    public long delay() {
+    long delay() {
         return delay;
     }
 }

@@ -8,15 +8,28 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
+/**
+ * A transformer that takes a source flux and replays the values with their original timing.
+ * It is also possible to specify a time acceleration factor to increase or decrease the replay speed.
+ *
+ * @param <T> data type
+ */
 public class ReplayWithOriginalTiming<T> implements Function<Flux<T>, Publisher<T>> {
     private final Function<T, Long> timestampExtractor;
     private final double timeAcceleration;
     private final Timed<T> TOKEN = new TimedValue<>(0, null);
 
+    /**
+     * @param timestampExtractor extracts the epoch time in ms from the values.
+     */
     public ReplayWithOriginalTiming(Function<T, Long> timestampExtractor) {
         this(timestampExtractor, 1);
     }
 
+    /**
+     * @param timestampExtractor extracts the epoch time in ms from the values.
+     * @param timeAcceleration time acceleration factor.
+     */
     public ReplayWithOriginalTiming(Function<T, Long> timestampExtractor, double timeAcceleration) {
         this.timestampExtractor = timestampExtractor;
         this.timeAcceleration = timeAcceleration;
