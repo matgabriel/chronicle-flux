@@ -15,14 +15,16 @@ import reactor.core.publisher.Flux;
 public interface FluxStore<T> {
 
     /**
-     * Stores all items of the given stream in the chronicle store.
+     * Stores all items of the given stream until the stream completes or the returned {@link Disposable} is disposed.
+     * Any error received on the stream will stop the storage.
      *
      * @param toStore data stream to store.
+     * @return a disposable that can be used to stop the storage process.
      */
     Disposable store(Publisher<T> toStore);
 
     /**
-     * Stores one item in the chronicle store.
+     * Stores one item.
      *
      * @param item item to store.
      */

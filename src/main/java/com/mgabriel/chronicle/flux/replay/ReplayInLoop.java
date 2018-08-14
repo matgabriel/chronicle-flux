@@ -4,19 +4,22 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
-import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 
+/**
+ * A transformer that takes a source flux and replays it in a loop.
+ * The values are wrapped in a {@link ReplayValue} object to indicate when the loop restarts.
+ * This information can be used by the application to perform some action when the loop restarts (clear caches, etc.)
+ *
+ * It is possible to specify a delay before each loop restart.
+ * Please note that if you chain
+ *
+ * @param <T> data type
+ */
 public class ReplayInLoop<T> implements Function<Flux<T>, Publisher<ReplayValue<T>>> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReplayInLoop.class);
     private final Duration delayBeforeRestart;
-    private final Boolean TOKEN = Boolean.FALSE;
 
     public ReplayInLoop(Duration delayBeforeRestart) {
         this.delayBeforeRestart = delayBeforeRestart;
@@ -24,39 +27,39 @@ public class ReplayInLoop<T> implements Function<Flux<T>, Publisher<ReplayValue<
 
     @Override
     public Publisher<ReplayValue<T>> apply(Flux<T> source) {
-        Flux<Flux<ReplayValue<T>>> generate = Flux.create(sink -> {
+        Flux<Flux<ReplayValue<T>>> fluxLoop = Flux.create(sink -> {
                     while (!sink.isCancelled()) {
                         long requested = sink.requestedFromDownstream();
                         if (requested > 0) {
-                            wrapValues(source, sink);
+                            sink.next(wrapValues(source));
                         } else {
                             try {
                                 Thread.sleep(100);
                             } catch (InterruptedException e) {
+                                //interrupt can happen when the flux is cancelled
                                 Thread.currentThread().interrupt();
-                                LOGGER.info("interrupted " + e);
                             }
                         }
                     }
                 }
         );
-        Flux<Flux<ReplayValue<T>>> limited = generate.limitRate(1);
-        return Flux.concat(limited);
+        return Flux.concat(fluxLoop.limitRate(1)); // limit the rate to avoid creating too many source flux in advance.
     }
 
-    private void wrapValues(Flux<T> source, FluxSink<Flux<ReplayValue<T>>> sink) {
+    private Flux<ReplayValue<T>> wrapValues(Flux<T> source) {
         AtomicBoolean firstValueSent = new AtomicBoolean(false);
-        Flux<ReplayValue<T>> nextFlux = source.delaySubscription(delayBeforeRestart).map(wrapAsReplayValue(firstValueSent));
-        sink.next(nextFlux);
+        return source.delaySubscription(delayBeforeRestart)
+                .map(wrapAsReplayValue(firstValueSent));
+
     }
 
     @NotNull
     private Function<T, ReplayValue<T>> wrapAsReplayValue(AtomicBoolean firstValueSent) {
-        return v -> {
+        return val -> {
             if (!firstValueSent.getAndSet(true)) {
-                return new ReplayValueImpl<>(true, v);
+                return new ReplayValueImpl<>(true, val);
             }
-            return new ReplayValueImpl<>(v);
+            return new ReplayValueImpl<>(val);
         };
     }
 }

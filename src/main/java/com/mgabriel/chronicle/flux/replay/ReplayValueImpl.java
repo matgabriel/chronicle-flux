@@ -17,7 +17,7 @@ public class ReplayValueImpl<T> implements ReplayValue<T>{
     }
 
     @Override
-    public boolean isLoopReset() {
+    public boolean isLoopRestart() {
         return isLoopReset;
     }
 
@@ -45,7 +45,7 @@ public class ReplayValueImpl<T> implements ReplayValue<T>{
     @Override
     public String toString() {
         return "ReplayValueImpl{" +
-                "isLoopReset=" + isLoopReset +
+                "isLoopRestart=" + isLoopReset +
                 ", value=" + value +
                 '}';
     }

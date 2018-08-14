@@ -21,6 +21,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
 /**
+ * Implementation of a {@link FluxStore} backed by a Chronicle Queue.
+ *
+ * This store respects the backpressure on the data streams it produces.
+ *
  * @author mgabriel.
  */
 public class ChronicleStore<T> implements FluxStore<T> {
@@ -31,6 +35,13 @@ public class ChronicleStore<T> implements FluxStore<T> {
     private final SingleChronicleQueue queue;
     private final RollCycle rollCycle;
 
+    /**
+     *
+     * @param path path were the Chronicle Queue will store the files.
+     *              This path should not be a network file system (see https://github.com/OpenHFT/Chronicle-Queue for more details)
+     * @param serializer data serializer
+     * @param deserializer data deserializer
+     */
     public ChronicleStore(String path, Function<T, byte[]> serializer,
             Function<byte[], T> deserializer) {
         this(ChronicleStore.<T>newBuilder()
@@ -48,6 +59,11 @@ public class ChronicleStore<T> implements FluxStore<T> {
 
     }
 
+    /**
+     *
+     * @param <BT> data type.
+     * @return a ChronicleStore builder.
+     */
     public static <BT> ChronicleStoreBuilder<BT> newBuilder() {
         return new ChronicleStoreBuilder<>();
     }
@@ -89,7 +105,8 @@ public class ChronicleStore<T> implements FluxStore<T> {
                             try {
                                 Thread.sleep(10); //waiting for data to appear on the queue
                             } catch (InterruptedException e) {
-                                traceInterrupt(e);
+                                //interrupt can happen when the flux is cancelled
+                                Thread.currentThread().interrupt();
                             }
                         }
                     }
@@ -97,7 +114,8 @@ public class ChronicleStore<T> implements FluxStore<T> {
                     try {
                         Thread.sleep(100); //waiting for requests on the flux
                     } catch (InterruptedException e) {
-                        traceInterrupt(e);
+                        //interrupt can happen when the flux is cancelled
+                        Thread.currentThread().interrupt();
                     }
                 }
                 int cycle = rollCycle.toCycle(tailer.index());
@@ -111,11 +129,6 @@ public class ChronicleStore<T> implements FluxStore<T> {
         } catch (Exception e) {
             LOGGER.error("Error while tailing on queue {}", tailer.queue().file().getAbsolutePath(), e);
         }
-    }
-
-    private void traceInterrupt(InterruptedException e) {
-        Thread.currentThread().interrupt();
-        LOGGER.trace("interrupted " + e);
     }
 
     private void deleteFile(int previousCycle) {
@@ -193,21 +206,38 @@ public class ChronicleStore<T> implements FluxStore<T> {
         private ChronicleStoreBuilder() {
         }
 
+        /**
+         * @param path path were the Chronicle Queue will store the files.
+         *             This path should not be a network file system (see https://github.com/OpenHFT/Chronicle-Queue for more details)
+         * @return this builder
+         */
         public ChronicleStoreBuilder<T> path(String path) {
             this.path = path;
             return this;
         }
 
+        /**
+         * @param serializer data serializer
+         * @return this builder
+         */
         public ChronicleStoreBuilder<T> serializer(Function<T, byte[]> serializer) {
             this.serializer = serializer;
             return this;
         }
 
+        /**
+         * @param deserializer data deserializer
+         * @return this builder
+         */
         public ChronicleStoreBuilder<T> deserializer(Function<byte[], T> deserializer) {
             this.deserializer = deserializer;
             return this;
         }
 
+        /**
+         * @param rollCycle roll cycle for the files
+         * @return this builder
+         */
         public ChronicleStoreBuilder<T> rollCycle(RollCycle rollCycle) {
             this.rollCycle = rollCycle;
             return this;
