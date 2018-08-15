@@ -14,6 +14,9 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
 /**
+ * Simple demo showing how to store values in a Chronicle store and replay them in a loop with the same timing as the
+ * original values
+ *
  * @author mgabriel.
  */
 public class ChronicleStoreDemo {
@@ -21,7 +24,6 @@ public class ChronicleStoreDemo {
     private static final String PATH = "demoChronicleStore";
 
     public static void main(String[] args) throws InterruptedException {
-
         deleteStoreIfItExists();
 
         ChronicleStore<DummyObject> store = new ChronicleStore<>(PATH, DummyObject::toBinary, DummyObject::fromBinary);
