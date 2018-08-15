@@ -49,6 +49,7 @@ public class ReplayFlux<T> extends Flux<T> implements Scannable {
     }
 
     /**
+     * @param acceleration time acceleration
      * @return a flux that will replay the values with a time acceleration applied to their original timing
      * (e.g. if the values were received with a 2 second interval, and the time acceleration is 2, then the returned flux will emit at a 1 second interval).
      */
