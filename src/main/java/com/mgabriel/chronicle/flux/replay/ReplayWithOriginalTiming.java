@@ -73,7 +73,7 @@ public class ReplayWithOriginalTiming<T> implements Function<Flux<T>, Publisher<
             this.second = second;
         }
 
-        long timeDifference() {
+        private long timeDifference() {
             return second.time() - first.time();
         }
 
