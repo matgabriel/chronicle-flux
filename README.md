@@ -48,7 +48,7 @@ ChronicleStore<DummyObject> chronicleStore = new ChronicleStore<>(PATH, DummyObj
 ### Store a stream of data
 
 The store method will return a handle that can be used to stop the storage.  
-Otherwise the data stream will be store until it completes or an error is received on the stream.  
+Otherwise the data stream will be stored until it completes or an error is received on the stream.  
 
 ```java
 Flux<DummyObject> source = ... 
@@ -76,7 +76,7 @@ chronicleStore.replayHistory(DummyObject::timestamp)
 ```
 
 In order to replay data with the original timing, we need to provide a function to extract the epoch time (in milliseconds) from the data.  
-Chronicle-flux could potentially add a timestamp to the values when they are persisted, but this would be a poor design choice since the data would be timestamped at the very end of the chain, possibly after passing through several queues. It is in general a better idea to add a timestamp on the data as soon as they enter the system in order to have an accurate time.  
+Chronicle-flux could potentially add a timestamp to the events when they are persisted, but this would be a poor design choice since the data would be timestamped at the very end of the chain, possibly after passing through several queues. It is in general a better idea to add a timestamp on the events as soon as they enter the system in order to have an accurate time.  
 
 
 ### Runnable demo
