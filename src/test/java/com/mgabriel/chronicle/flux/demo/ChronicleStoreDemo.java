@@ -24,21 +24,22 @@ class ChronicleStoreDemo {
     public static void main(String[] args) throws InterruptedException {
         deleteStoreIfItExists(PATH);
 
-        ChronicleStore<DummyObject> store = new ChronicleStore<>(PATH, DummyObject::toBinary, DummyObject::fromBinary);
+        ChronicleStore<DummyObject> chronicleStore = new ChronicleStore<>(PATH, DummyObject::toBinary,
+                DummyObject::fromBinary);
 
         Flux<String> source = Flux.just("one", "two", "three")
                 .concatWith(Flux.just("four").delayElements(Duration.ofSeconds(1)))
                 .concatWith(Flux.just("five").delayElements(Duration.ofSeconds(2)));
 
         System.out.println("Storing source flux...");
-        Disposable handle = store.store(source.map(v -> new DummyObject(System.currentTimeMillis(), v)));
+        Disposable handle = chronicleStore.store(source.map(v -> new DummyObject(System.currentTimeMillis(), v)));
 
         SECONDS.sleep(4); //wait until all items are stored
         handle.dispose();
 
-        System.out.println("Storage achieved, replaying from store");
+        System.out.println("Storage achieved, replaying from chronicleStore");
 
-        store.replayHistory(DummyObject::timestamp)
+        chronicleStore.replayHistory(DummyObject::timestamp)
                 .withOriginalTiming()
                 .inLoop(Duration.ofSeconds(1))
                 .doOnNext(i -> System.out.println(Instant.now() + " " + i))
