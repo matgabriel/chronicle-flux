@@ -16,7 +16,7 @@ Chronicle Queue is a low latency library that persists everything on disk with m
 ### Functionalities
 With the provided ChronicleStore, you can:
 - Store a reactive stream.
-- Subscribe to the history + live updates of the store with a reactive stream (with a [Flux](http://projectreactor.io/docs/core/release/reference/#flux) from project [reactor-core](https://github.com/reactor/reactor-core)).
+- Subscribe to the history + live updates of the store with a reactive stream (the store returns a [Flux](http://projectreactor.io/docs/core/release/reference/#flux) from project [reactor-core](https://github.com/reactor/reactor-core)).
 - Replay the history with the original timing, with a time acceleration (e.g. replay at twice the speed).
 - Replay the history in a loop.
 
@@ -29,10 +29,10 @@ This project can be useful for different use cases:
 - a simple alternative to Kafka for basic uses cases: no need to install anything, it's all persisted on disk :smiley:
 
 
-### Example usage
+## Example usage
 
 
-####Create a Chronicle Store:
+###Create a Chronicle Store:
 
 Please note that you must provide a way to serialize the data as binary.
 The easiest solution is to use a binary serialization protocol such as [Protobuf](https://developers.google.com/protocol-buffers/), [Avro](https://avro.apache.org/docs/current/), etc. In this case the binary serialization will be supported out of the box.
@@ -45,7 +45,7 @@ The 2nd and 3rd arguments are the serializer and deserializer for your data.
 ChronicleStore<DummyObject> chronicleStore = new ChronicleStore<>(PATH, DummyObject::toBinary, DummyObject::fromBinary);
 ```
 
-####Store a stream of data
+###Store a stream of data
 
 The store method will return a handle that can be used to stop the storage.
 Otherwise the data stream will be store until it completes or an error is received on the stream.
@@ -55,7 +55,7 @@ Flux<DummyObject> source = ...
 Disposable handle = chronicleStore.store(source);
 ```
 
-####Subscribe to the store
+###Subscribe to the store
 
 We can subscribe to the store and print old values, as well as new values being persisted in the store.
 
@@ -65,7 +65,7 @@ Flux<DummyObject> allValues = chronicleStore.retrieveAll();
                 .blockLast();
 ```
 
-We can also replay the history with the same timing as the original stream:
+We can also replay the history with the same timing as the original stream, and in an infinite loop:
 
 ```java
 chronicleStore.replayHistory(DummyObject::timestamp)
@@ -79,7 +79,7 @@ In order to replay data with the original timing, we need to provide a function 
 Chronicle-flux could potentially add a timestamp to the values when they are persisted, but this would be a poor design choice since the data would be timestamped at the very end of the chain, possibly after passing through several queues. It is in general a better idea to add a timestamp on the data as soon as they enter the system in order to have an accurate time.
 
 
-####Runnable demo
+###Runnable demo
 
 if you want to run some code samples, have a look at the demo folder in the test directory that contains several runnable classes.
 
