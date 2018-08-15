@@ -34,12 +34,12 @@ This project can be useful for different use cases:
 
 ### Create a Chronicle Store:
 
-Please note that you must provide a way to serialize the data as binary.
-The easiest solution is to use a binary serialization protocol such as [Protobuf](https://developers.google.com/protocol-buffers/), [Avro](https://avro.apache.org/docs/current/), etc. In this case the binary serialization will be supported out of the box.
+Please note that you must provide a way to serialize the data as binary.  
+The easiest solution is to use a binary serialization protocol such as [Protobuf](https://developers.google.com/protocol-buffers/), [Avro](https://avro.apache.org/docs/current/), etc. In this case it will be supported out of the box.  
 
-The first argument is the directory path used to persist the on disk.
-Since Chronicle is using memory mapped file, **you should not use a path mounted on a network file system**, for more details, have a look at the [Chronicle documentation](https://github.com/OpenHFT/Chronicle-Queue#chronicle-queue)
-The 2nd and 3rd arguments are the serializer and deserializer for your data.
+The first argument is the directory path used to persist on disk.    
+Since Chronicle is using memory mapped file, **you should not use a path mounted on a network file system**, for more details, have a look at the [Chronicle documentation](https://github.com/OpenHFT/Chronicle-Queue#chronicle-queue)    
+The 2nd and 3rd arguments are the serializer and deserializer for your data.  
 
 ```java
 ChronicleStore<DummyObject> chronicleStore = new ChronicleStore<>(PATH, DummyObject::toBinary, DummyObject::fromBinary);
@@ -47,8 +47,8 @@ ChronicleStore<DummyObject> chronicleStore = new ChronicleStore<>(PATH, DummyObj
 
 ### Store a stream of data
 
-The store method will return a handle that can be used to stop the storage.
-Otherwise the data stream will be store until it completes or an error is received on the stream.
+The store method will return a handle that can be used to stop the storage.  
+Otherwise the data stream will be store until it completes or an error is received on the stream.  
 
 ```java
 Flux<DummyObject> source = ... 
@@ -57,7 +57,7 @@ Disposable handle = chronicleStore.store(source);
 
 ### Subscribe to the store
 
-We can subscribe to the store and print old values, as well as new values being persisted in the store.
+We can subscribe to the store and print old values, as well as new values being persisted in the store.  
 
 ```java
 Flux<DummyObject> allValues = chronicleStore.retrieveAll();
@@ -65,7 +65,7 @@ Flux<DummyObject> allValues = chronicleStore.retrieveAll();
                 .blockLast();
 ```
 
-We can also replay the history with the same timing as the original stream, and in an infinite loop:
+We can also replay the history with the same timing as the original stream, and in an infinite loop:  
 
 ```java
 chronicleStore.replayHistory(DummyObject::timestamp)
@@ -75,8 +75,8 @@ chronicleStore.replayHistory(DummyObject::timestamp)
                 .blockLast();
 ```
 
-In order to replay data with the original timing, we need to provide a function to extract the epoch time (in milliseconds) from the data.
-Chronicle-flux could potentially add a timestamp to the values when they are persisted, but this would be a poor design choice since the data would be timestamped at the very end of the chain, possibly after passing through several queues. It is in general a better idea to add a timestamp on the data as soon as they enter the system in order to have an accurate time.
+In order to replay data with the original timing, we need to provide a function to extract the epoch time (in milliseconds) from the data.  
+Chronicle-flux could potentially add a timestamp to the values when they are persisted, but this would be a poor design choice since the data would be timestamped at the very end of the chain, possibly after passing through several queues. It is in general a better idea to add a timestamp on the data as soon as they enter the system in order to have an accurate time.  
 
 
 ### Runnable demo
