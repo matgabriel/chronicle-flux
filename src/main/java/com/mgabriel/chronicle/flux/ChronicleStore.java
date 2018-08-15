@@ -139,21 +139,29 @@ public class ChronicleStore<T> implements FluxStore<T> {
         if (wireStore != null) {
             File file = wireStore.file();
             if (file != null) {
-                try {
-                    boolean deleted = file.delete();
-                    if (deleted) {
-                        LOGGER.trace("file {} deleted after read", file.getAbsolutePath());
-                    } else {
-                        LOGGER.error("Could not delete file {}", file.getAbsolutePath());
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Could not delete file {}", file.getAbsolutePath(), e);
-                }
+                deleteWireStore(file);
             } else {
                 LOGGER.error("Could not find file for cycle {}", previousCycle);
             }
         } else {
             LOGGER.trace("wirestore is null for cycle {}", previousCycle);
+        }
+    }
+
+    private void deleteWireStore(File file) {
+        try {
+            boolean deleted = file.delete();
+            logDeletionResult(file, deleted);
+        } catch (Exception e) {
+            LOGGER.error("Could not delete file {}", file.getAbsolutePath(), e);
+        }
+    }
+
+    private void logDeletionResult(File file, boolean deleted) {
+        if (deleted) {
+            LOGGER.trace("file {} deleted after read", file.getAbsolutePath());
+        } else {
+            LOGGER.error("Could not delete file {}", file.getAbsolutePath());
         }
     }
 
