@@ -10,12 +10,12 @@ public class ReplayValueImpl<T> implements ReplayValue<T>{
     private final boolean isLoopReset;
     private final T value;
 
-    public ReplayValueImpl(T value) {
+    ReplayValueImpl(T value) {
         this.isLoopReset = false;
         this.value = value;
     }
 
-    public ReplayValueImpl(boolean isLoopReset, T value) {
+    ReplayValueImpl(boolean isLoopReset, T value) {
         this.isLoopReset = isLoopReset;
         this.value = value;
     }

@@ -69,15 +69,20 @@ public class ReplayWithOriginalTiming<T> implements Function<Flux<T>, Publisher<
         private final Timed<T> second;
 
         private TimedValuePair(Timed<T> first, Timed<T> second) {
-            if (first == null || second == null) {
-                throw new IllegalArgumentException("values should not be null");
-            }
             this.first = first;
             this.second = second;
         }
 
         long timeDifference() {
             return second.time() - first.time();
+        }
+
+        @Override
+        public String toString() {
+            return "TimedValuePair{" +
+                    "first=" + first +
+                    ", second=" + second +
+                    '}';
         }
     }
 }

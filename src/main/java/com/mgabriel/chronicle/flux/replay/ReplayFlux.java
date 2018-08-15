@@ -6,6 +6,7 @@ import java.util.function.Function;
 import reactor.core.CoreSubscriber;
 import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
+import reactor.util.annotation.NonNull;
 
 /**
  * A flux that can be used to replay historical values with different strategies.
@@ -26,12 +27,12 @@ public class ReplayFlux<T> extends Flux<T> implements Scannable {
     }
 
     @Override
-    public void subscribe(CoreSubscriber<? super T> actual) {
+    public void subscribe(@NonNull CoreSubscriber<? super T> actual) {
         source.subscribe(actual);
     }
 
     @Override
-    public Object scanUnsafe(Attr attr) {
+    public Object scanUnsafe(@NonNull Attr attr) {
         return getScannable().scanUnsafe(attr);
     }
 
@@ -44,7 +45,7 @@ public class ReplayFlux<T> extends Flux<T> implements Scannable {
      * (e.g. if the values were received with a 1 second interval, the returned flux will emit at a 1 second interval).
      */
     public ReplayFlux<T> withOriginalTiming(){
-        return new ReplayFlux<>(source.compose(new ReplayWithOriginalTiming<>(timestampExtractor)), timestampExtractor);
+        return new ReplayFlux<>(source.transform(new ReplayWithOriginalTiming<>(timestampExtractor)), timestampExtractor);
     }
 
     /**
@@ -52,7 +53,7 @@ public class ReplayFlux<T> extends Flux<T> implements Scannable {
      * (e.g. if the values were received with a 2 second interval, and the time acceleration is 2, then the returned flux will emit at a 1 second interval).
      */
     public ReplayFlux<T> withTimeAcceleration(double acceleration){
-        return new ReplayFlux<>(source.compose(new ReplayWithOriginalTiming<>(timestampExtractor, acceleration)), timestampExtractor);
+        return new ReplayFlux<>(source.transform(new ReplayWithOriginalTiming<>(timestampExtractor, acceleration)), timestampExtractor);
     }
 
     /**
@@ -67,6 +68,6 @@ public class ReplayFlux<T> extends Flux<T> implements Scannable {
      * @return a flux that will replay the values in a loop.
      */
     public Flux<ReplayValue<T>> inLoop(Duration delayBeforeLoopRestart){
-        return source.compose(new ReplayInLoop<>(delayBeforeLoopRestart));
+        return source.transform(new ReplayInLoop<>(delayBeforeLoopRestart));
     }
 }

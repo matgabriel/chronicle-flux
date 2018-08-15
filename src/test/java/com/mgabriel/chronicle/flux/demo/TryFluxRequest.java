@@ -1,4 +1,4 @@
-package com.mgabriel.chronicle.flux;
+package com.mgabriel.chronicle.flux.demo;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;

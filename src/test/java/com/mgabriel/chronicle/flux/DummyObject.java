@@ -6,6 +6,10 @@ import java.util.Objects;
 import com.google.common.primitives.Longs;
 
 /**
+ * A dummy test object that can be serialized / deserialized as binary.
+ *
+ * Please note that for production it makes more sense to rely on a binary protocol such as Protof, Avro, etc.
+ *
  * @author mgabriel.
  */
 public class DummyObject {
@@ -19,15 +23,23 @@ public class DummyObject {
         this.value = value;
     }
 
-    public String getValue() {
+    public static DummyObject fromBinary(byte[] bytes) {
+        byte[] time = new byte[8];
+        byte[] val = new byte[bytes.length - 8];
+        System.arraycopy(bytes, 0, time, 0, time.length);
+        System.arraycopy(bytes, 8, val, 0, val.length);
+        return new DummyObject(Longs.fromByteArray(time), new String(val, UTF_8));
+    }
+
+    public String value() {
         return value;
     }
 
-    public long getTimestamp() {
+    public long timestamp() {
         return timestamp;
     }
 
-    public byte[] toBinary(){
+    public byte[] toBinary() {
         byte[] time = Longs.toByteArray(timestamp);
         byte[] val = value.getBytes(UTF_8);
         byte[] result = new byte[time.length + val.length];
@@ -36,14 +48,10 @@ public class DummyObject {
         return result;
     }
 
-    public static DummyObject fromBinary(byte[] bytes){
-        byte[] time = new byte[8];
-        byte[] val = new byte[bytes.length - 8];
-        System.arraycopy(bytes, 0, time, 0, time.length);
-        System.arraycopy(bytes, 8, val, 0, val.length);
-        return new DummyObject(Longs.fromByteArray(time), new String(val, UTF_8));
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -53,11 +61,6 @@ public class DummyObject {
             return false;
         DummyObject that = (DummyObject) o;
         return Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(value);
     }
 
     @Override

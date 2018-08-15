@@ -44,6 +44,9 @@ class TimedValue<T> implements Timed<T> {
 
     @Override
     public String toString() {
-        return super.toString();
+        return "TimedValue{" +
+                "time=" + time +
+                ", value=" + value +
+                '}';
     }
 }

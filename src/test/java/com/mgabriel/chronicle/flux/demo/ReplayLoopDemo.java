@@ -1,8 +1,10 @@
-package com.mgabriel.chronicle.flux.replay;
+package com.mgabriel.chronicle.flux.demo;
 
 import java.time.Duration;
 import java.time.Instant;
 
+import com.mgabriel.chronicle.flux.replay.ReplayInLoop;
+import com.mgabriel.chronicle.flux.replay.ReplayValue;
 import reactor.core.publisher.Flux;
 
 public class ReplayLoopDemo {

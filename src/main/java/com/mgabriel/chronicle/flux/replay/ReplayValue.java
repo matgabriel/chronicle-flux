@@ -2,7 +2,7 @@ package com.mgabriel.chronicle.flux.replay;
 
 /**
  * A value wrapper that indicates if the current value is the first value replayed in the replay loop.
- * @see {@link ReplayInLoop}
+ * @see ReplayInLoop
  * @param <T> data type
  */
 public interface ReplayValue<T> extends WrappedValue<T> {
