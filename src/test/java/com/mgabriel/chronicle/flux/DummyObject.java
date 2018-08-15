@@ -8,7 +8,7 @@ import com.google.common.primitives.Longs;
 /**
  * A dummy test object that can be serialized / deserialized as binary.
  *
- * Please note that for production it makes more sense to rely on a binary protocol such as Protof, Avro, etc.
+ * Please note that for production it makes more sense to rely on a binary protocol such as Protobuf, Avro, etc.
  *
  * @author mgabriel.
  */

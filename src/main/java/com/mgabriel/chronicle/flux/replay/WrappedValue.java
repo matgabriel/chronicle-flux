@@ -1,5 +1,5 @@
 package com.mgabriel.chronicle.flux.replay;
 
-public interface WrappedValue<T> {
+interface WrappedValue<T> {
     T value();
 }

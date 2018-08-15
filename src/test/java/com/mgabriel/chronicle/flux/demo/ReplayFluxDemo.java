@@ -7,7 +7,7 @@ import java.time.Instant;
 import com.mgabriel.chronicle.flux.replay.ReplayFlux;
 import reactor.core.publisher.Flux;
 
-public class ReplayFluxDemo {
+class ReplayFluxDemo {
 
     public static void main(String[] args) {
 

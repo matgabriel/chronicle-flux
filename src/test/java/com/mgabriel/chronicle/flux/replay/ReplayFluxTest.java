@@ -2,16 +2,17 @@ package com.mgabriel.chronicle.flux.replay;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.mgabriel.chronicle.flux.DummyObject;
+import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -30,32 +31,28 @@ class ReplayFluxTest {
     private static final Duration THREE_SECONDS = ofSeconds(3);
     private static final Duration MILLIS_500 = ofMillis(500);
 
-    private static Flux<DummyObject> source = Flux.just(new DummyObject(10000, ONE),
+    private static final Flux<DummyObject> source = Flux.just(new DummyObject(10000, ONE),
             new DummyObject(11000, TWO),
             new DummyObject(12000, THREE),
             new DummyObject(15000, FOUR)
     );
 
-    private static ReplayFlux<DummyObject> replayFlux = new ReplayFlux<>(source, DummyObject::timestamp);
-
-    @BeforeEach
-    void setUp() {
-    }
+    private static final ReplayFlux<DummyObject> replayFlux = new ReplayFlux<>(source, DummyObject::timestamp);
 
     @Test
     @DisplayName("tests that the flux is replayed with the original timing")
     void shouldRespectOriginalTiming() {
-        StepVerifier.withVirtualTime(() -> replayFlux.withOriginalTiming())
+        StepVerifier.withVirtualTime(replayFlux::withOriginalTiming)
                 .expectSubscription()
-                .assertNext(i -> Assertions.assertEquals(ONE, i.value()))
+                .assertNext(i -> assertEquals(ONE, i.value()))
                 .expectNoEvent(ONE_SECOND)
-                .assertNext(i -> Assertions.assertEquals(TWO, i.value()))
+                .assertNext(i -> assertEquals(TWO, i.value()))
                 .expectNoEvent(ONE_SECOND)
-                .assertNext(i -> Assertions.assertEquals(THREE, i.value()))
+                .assertNext(i -> assertEquals(THREE, i.value()))
                 .expectNoEvent(THREE_SECONDS)
-                .assertNext(i -> Assertions.assertEquals(FOUR, i.value()))
+                .assertNext(i -> assertEquals(FOUR, i.value()))
                 .expectComplete()
-                .verify(ofMillis(500));
+                .verify(MILLIS_500);
     }
 
     @Test
@@ -63,15 +60,15 @@ class ReplayFluxTest {
     void shouldReplayWithTimeAcceleration() {
         StepVerifier.withVirtualTime(() -> replayFlux.withTimeAcceleration(2))
                 .expectSubscription()
-                .assertNext(i -> Assertions.assertEquals(ONE, i.value()))
+                .assertNext(i -> assertEquals(ONE, i.value()))
                 .expectNoEvent(MILLIS_500)
-                .assertNext(i -> Assertions.assertEquals(TWO, i.value()))
+                .assertNext(i -> assertEquals(TWO, i.value()))
                 .expectNoEvent(MILLIS_500)
-                .assertNext(i -> Assertions.assertEquals(THREE, i.value()))
+                .assertNext(i -> assertEquals(THREE, i.value()))
                 .expectNoEvent(ONE_SECOND.plus(MILLIS_500))
-                .assertNext(i -> Assertions.assertEquals(FOUR, i.value()))
+                .assertNext(i -> assertEquals(FOUR, i.value()))
                 .expectComplete()
-                .verify(ofMillis(500));
+                .verify(MILLIS_500);
     }
 
     @Test
@@ -79,15 +76,15 @@ class ReplayFluxTest {
     void shouldReplayWithTimeDeceleration() {
         StepVerifier.withVirtualTime(() -> replayFlux.withTimeAcceleration(0.5))
                 .expectSubscription()
-                .assertNext(i -> Assertions.assertEquals(ONE, i.value()))
+                .assertNext(i -> assertEquals(ONE, i.value()))
                 .expectNoEvent(TWO_SECONDS)
-                .assertNext(i -> Assertions.assertEquals(TWO, i.value()))
+                .assertNext(i -> assertEquals(TWO, i.value()))
                 .expectNoEvent(TWO_SECONDS)
-                .assertNext(i -> Assertions.assertEquals(THREE, i.value()))
+                .assertNext(i -> assertEquals(THREE, i.value()))
                 .expectNoEvent(ofSeconds(6))
-                .assertNext(i -> Assertions.assertEquals(FOUR, i.value()))
+                .assertNext(i -> assertEquals(FOUR, i.value()))
                 .expectComplete()
-                .verify(ofMillis(500));
+                .verify(MILLIS_500);
     }
 
     @Test
@@ -96,25 +93,25 @@ class ReplayFluxTest {
         StepVerifier.create(replayFlux.inLoop())
                 .expectSubscription()
                 .assertNext(i -> {
-                    Assertions.assertEquals(ONE, i.value().value());
+                    assertEquals(ONE, i.value().value());
                     Assertions.assertTrue(i.isLoopRestart());
                 })
                 .assertNext(assertValue(TWO))
                 .assertNext(assertValue(THREE))
                 .assertNext(assertValue(FOUR))
                 .assertNext(i -> {
-                    Assertions.assertEquals(ONE, i.value().value());
+                    assertEquals(ONE, i.value().value());
                     Assertions.assertTrue(i.isLoopRestart());
                 })
                 .assertNext(assertValue(TWO))
                 .assertNext(assertValue(THREE))
                 .assertNext(assertValue(FOUR))
                 .thenCancel()
-                .verify(ofMillis(500));
+                .verify(MILLIS_500);
     }
 
     private static Consumer<ReplayValue<DummyObject>> assertValue(String expected) {
-        return i -> Assertions.assertEquals(expected, i.value().value());
+        return i -> assertEquals(expected, i.value().value());
     }
 
     @Test
@@ -134,13 +131,22 @@ class ReplayFluxTest {
                 .assertNext(assertValue(FOUR))
                 .expectNoEvent(TWO_SECONDS)
                 .thenCancel()
-                .verify(ofMillis(500));
+                .verify(MILLIS_500);
     }
 
     private static Consumer<ReplayValue<DummyObject>> assertLoopRestart() {
         return i -> {
-            Assertions.assertEquals(ONE, i.value().value());
+            assertEquals(ONE, i.value().value());
             Assertions.assertTrue(i.isLoopRestart());
         };
+    }
+
+    @Test
+    @DisplayName("tests that the replay flux forwards the context of its source")
+    void shouldForwardSourceContext() {
+        String testName = "testName";
+        ReplayFlux<DummyObject> replayFlux = new ReplayFlux<>(source.name(testName), i -> 1L);
+        String replayFluxName = Scannable.from(replayFlux).name();
+        assertEquals(testName, replayFluxName);
     }
 }

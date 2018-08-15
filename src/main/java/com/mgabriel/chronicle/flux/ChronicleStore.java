@@ -56,7 +56,10 @@ public class ChronicleStore<T> implements FluxStore<T> {
         deserializer = builder.deserializer;
         rollCycle = builder.rollCycle;
         this.queue = SingleChronicleQueueBuilder.binary(path).rollCycle(rollCycle).build();
+    }
 
+    void close(){
+        queue.close();
     }
 
     /**
@@ -177,7 +180,7 @@ public class ChronicleStore<T> implements FluxStore<T> {
                 () -> readTailer(tailer, sink, readerType, deleteAfterRead),
                 "ChronicleStoreRetrieve_" + path);
         t.setDaemon(true);
-        t.run();
+        t.start();
     }
 
     @Override

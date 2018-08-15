@@ -8,7 +8,7 @@ import com.mgabriel.chronicle.flux.replay.ReplayInLoop;
 import com.mgabriel.chronicle.flux.replay.ReplayValue;
 import reactor.core.publisher.Flux;
 
-public class ReplayLoopDemo {
+class ReplayLoopDemo {
 
     public static void main(String[] args) {
         Flux<Long> source = Flux.just(0L, 1L, 2L, 3L, 4L, 5L);

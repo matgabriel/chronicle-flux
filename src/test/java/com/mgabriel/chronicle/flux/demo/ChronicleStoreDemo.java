@@ -1,15 +1,13 @@
 package com.mgabriel.chronicle.flux.demo;
 
+import static com.mgabriel.chronicle.flux.util.ChronicleStoreCleanup.deleteStoreIfItExists;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 
 import com.mgabriel.chronicle.flux.ChronicleStore;
 import com.mgabriel.chronicle.flux.DummyObject;
-import org.apache.commons.io.FileUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
@@ -19,12 +17,12 @@ import reactor.core.publisher.Flux;
  *
  * @author mgabriel.
  */
-public class ChronicleStoreDemo {
+class ChronicleStoreDemo {
 
     private static final String PATH = "demoChronicleStore";
 
     public static void main(String[] args) throws InterruptedException {
-        deleteStoreIfItExists();
+        deleteStoreIfItExists(PATH);
 
         ChronicleStore<DummyObject> store = new ChronicleStore<>(PATH, DummyObject::toBinary, DummyObject::fromBinary);
 
@@ -47,17 +45,4 @@ public class ChronicleStoreDemo {
                 .blockLast();
     }
 
-    private static void deleteStoreIfItExists() {
-        File directory = new File(".");
-        try {
-            String FULL_PATH = directory.getCanonicalPath() + File.separator + PATH;
-            File storePath = new File(FULL_PATH);
-            if (storePath.exists()) {
-                FileUtils.deleteDirectory(storePath);
-                System.out.println("Deleted existing store");
-            }
-        } catch (IOException e) {
-            System.err.println("Error while deleting store");
-        }
-    }
 }
