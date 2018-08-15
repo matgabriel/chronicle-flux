@@ -15,7 +15,7 @@ apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
 
-def chronicleVersion = '4.6.77'
+def chronicleVersion = '5.16.8'
 def reactorVersion = '3.1.7.RELEASE'
 
 repositories {
