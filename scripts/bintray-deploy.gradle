@@ -7,7 +7,7 @@ project.ext.getDeploymentVersion = {
 }
 
 bintrayUpload.doFirst {
-    println "Deploying version ${getDeploymentVersion()} from vscTag ${VCS_TAG}"
+    println "Deploying version ${getDeploymentVersion()} from vscTag ${VCS_TAG} with bintray user ${BINTRAY.userName}"
 }
 
 def pomConfig = {

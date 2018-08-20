@@ -23,7 +23,7 @@ buildscript {
             name        : 'chronicle-flux',
             organization: 'streamly',
             userName    : System.getenv('BINTRAY_USER'),
-            apiToken    : System.getenv('BINTRAY_API_TOKEN')
+            apiToken    : System.getenv('BINTRAY_KEY')
     ]
 
     repositories {
