@@ -1,11 +1,38 @@
 buildscript {
+    project.ext.DEPLOYMENT = System.getProperty('deployment') ?: false
+    project.ext.VCS_TAG = System.getProperty('TRAVIS_TAG') ?: System.getenv('TRAVIS_TAG')
+    project.ext.POM = [
+            groupId    : 'ch.streamly',
+            artifactId : 'chronicle-flux',
+            description: 'A reactive driver for Chronicle-Queue.',
+            developers : [
+                    [
+                            id   : 'mgabriel',
+                            name : 'Mathieu Gabriel',
+                            email: 'dev@streamly.ch'
+                    ]
+            ]]
+    project.ext.INFO = [
+            repo        : 'https://github.com/matgabriel/chronicle-flux.git',
+            url         : 'https://github.com/matgabriel/chronicle-flux',
+            github      : 'https://github.com/matgabriel/chronicle-flux',
+            githubIssues: 'https://github.com/matgabriel/chronicle-flux/issues'
+    ]
+    project.ext.BINTRAY = [
+            repo        : 'streamly-repo',
+            name        : 'ch.streamly:chronicle-flux',
+            organization: 'streamly',
+            userName    : System.getenv('BINTRAY_USER'),
+            apiToken    : System.getenv('BINTRAY_API_TOKEN')
+    ]
+
     repositories {
         mavenCentral()
         jcenter()
     }
 }
 
-group 'ch.streamly'
+group POM.groupId
 
 
 apply plugin: 'java'
@@ -13,13 +40,22 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'jacoco'
 
-sourceCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
 
 def chronicleVersion = '5.16.8'
 def reactorVersion = '3.1.7.RELEASE'
 
 repositories {
     mavenCentral()
+}
+
+if (DEPLOYMENT) {
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+
+    println 'Applying deployment scripts'
+    apply from: './scripts/bintray-deploy.gradle'
 }
 
 dependencies {
@@ -48,6 +84,21 @@ jacocoTestReport {
     }
 }
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
 
 
 

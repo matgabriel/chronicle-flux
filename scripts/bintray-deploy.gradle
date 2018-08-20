@@ -1,0 +1,83 @@
+project.ext.getDeploymentVersion = {
+    String tmpDeploymentVersion = VCS_TAG.replaceFirst("v", "");
+    if (!tmpDeploymentVersion.matches("\\d+\\.\\d+\\.\\d+")) {
+        throw new RuntimeException("Version is not valid. Correct format is like 1.0.2 but was " + tmpDeploymentVersion)
+    }
+    return tmpDeploymentVersion;
+}
+
+bintrayUpload.doFirst {
+    println "Deploying version ${getDeploymentVersion()} from vscTag ${VCS_TAG}"
+}
+
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        POM.developers.each { dev ->
+            developer {
+                id dev.id
+                name dev.name
+                email dev.email
+            }
+        }
+    }
+
+    scm {
+        connection "scm:git:${INFO.repo}"
+        developerConnection "scm:git:${INFO.repo}"
+        url "${INFO.repo}"
+    }
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            from components.java
+            artifact sourcesJar {
+                classifier "sources"
+            }
+            artifact javadocJar {
+                classifier "javadoc"
+            }
+            groupId POM.groupId
+            artifactId POM.artifactId
+            version getDeploymentVersion()
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', POM.description)
+                root.appendNode('name', POM.artifactId)
+                root.appendNode('url', INFO.url)
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
+
+bintray {
+    user = BINTRAY.userName
+    key = BINTRAY.apiToken
+    publications = ['mavenPublication']
+    dryRun = !DEPLOYMENT // Whether to run this as dry-run, without deploying
+    publish = DEPLOYMENT // Whether version should be auto published after an upload
+    override = false // Whether to override version artifacts already published
+
+    pkg {
+        repo = BINTRAY.repo
+        name = BINTRAY.name
+        userOrg = BINTRAY.organization
+        licenses = ['Apache-2.0']
+        vcsUrl = INFO.repo
+        version {
+            name = getDeploymentVersion()
+            desc = getDeploymentVersion()
+            released  = new Date()
+        }
+    }
+
+}
