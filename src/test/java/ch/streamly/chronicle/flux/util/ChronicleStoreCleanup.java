@@ -9,17 +9,24 @@ public class ChronicleStoreCleanup {
 
     public static void deleteStoreIfItExists(String path) {
         File directory = new File(".");
-        try {
-            deleteStore(path, directory);
-        } catch (IOException e) {
-            //try again
+        boolean done = false;
+        long startTime = System.currentTimeMillis();
+        Exception exception = null;
+        while(!done && System.currentTimeMillis() - startTime < 5000){
             try {
-                Thread.sleep(500);
                 deleteStore(path, directory);
-            } catch (Exception exception) {
-                System.err.println("Error while deleting store "+exception);
+                done = true;
+            } catch (IOException e) {
+                exception = e;
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException interrupted) {
+                    System.out.println("store deletion interrupted "+interrupted);
+                }
             }
-
+        }
+        if(!done){
+            System.err.println("Error while deleting store "+exception);
         }
     }
 
@@ -29,6 +36,8 @@ public class ChronicleStoreCleanup {
         if (storePath.exists()) {
             FileUtils.deleteDirectory(storePath);
             System.out.println("Deleted existing store");
+        }else{
+            System.out.println("Path does not exists "+path);
         }
     }
 }

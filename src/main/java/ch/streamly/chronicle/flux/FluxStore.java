@@ -10,9 +10,10 @@ import reactor.core.publisher.Flux;
 /**
  * Reactive store used to store and replay a Flux.
  *
- * @param <T> the data type
+ * @param <I> input data type
+ * @param <O> input data type
  */
-public interface FluxStore<T> {
+public interface FluxStore<I, O> {
 
     /**
      * Stores all items of the given stream until the stream completes or the returned {@link Disposable} is disposed.
@@ -21,19 +22,19 @@ public interface FluxStore<T> {
      * @param toStore data stream to store.
      * @return a disposable that can be used to stop the storage process.
      */
-    Disposable store(Publisher<T> toStore);
+    Disposable store(Publisher<I> toStore);
 
     /**
      * Stores one item.
      *
      * @param item item to store.
      */
-    void store(T item);
+    void store(I item);
 
     /**
      * @return all values present in the store and new values being stored in this FluxStore.
      */
-    default Flux<T> retrieveAll() {
+    default Flux<O> retrieveAll() {
         return retrieveAll(false);
     }
 
@@ -41,22 +42,22 @@ public interface FluxStore<T> {
      * @param deleteAfterRead if true, the file storing the data on disk will be deleted once it has been read.
      * @return all values present in the store and new values being stored in this FluxStore.
      */
-    Flux<T> retrieveAll(boolean deleteAfterRead);
+    Flux<O> retrieveAll(boolean deleteAfterRead);
 
     /**
      * @return all values present in the store and completes the stream.
      */
-    Flux<T> retrieveHistory();
+    Flux<O> retrieveHistory();
 
     /**
      * @return the stream of new values being stored in this FluxStore (history is ignored).
      */
-    Flux<T> retrieveNewValues();
+    Flux<O> retrieveNewValues();
 
     /**
      * @param timestampExtractor a function to extract the epoch time from the values.
      * @return a Flux that can be used to replay the history with multiple strategies.
      */
-    ReplayFlux<T> replayHistory(Function<T, Long> timestampExtractor);
+    ReplayFlux<O> replayHistory(Function<O, Long> timestampExtractor);
 
 }

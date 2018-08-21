@@ -4,8 +4,8 @@ import static java.time.Duration.ofSeconds;
 
 import java.time.Instant;
 
-import ch.streamly.chronicle.flux.replay.ReplayValue;
 import ch.streamly.chronicle.flux.replay.ReplayInLoop;
+import ch.streamly.domain.ReplayValue;
 import reactor.core.publisher.Flux;
 
 class ReplayLoopDemo {

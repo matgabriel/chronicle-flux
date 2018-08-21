@@ -1,5 +1,6 @@
 package ch.streamly.chronicle.flux.replay;
 
+import ch.streamly.domain.WrappedValue;
 
 class ValueToDelay<T> implements WrappedValue<T> {
     private final long delay;

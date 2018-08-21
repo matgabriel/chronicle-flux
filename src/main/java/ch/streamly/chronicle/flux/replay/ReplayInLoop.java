@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.LongStream;
 
+import ch.streamly.domain.ReplayValue;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
@@ -42,12 +43,11 @@ public class ReplayInLoop<T> implements Function<Flux<T>, Publisher<ReplayValue<
     }
 
     private Function<T, ReplayValue<T>> wrapAsReplayValue(AtomicBoolean firstValueSent) {
-
         return val -> {
             if (!firstValueSent.getAndSet(true)) {
-                return new ReplayValueImpl<>(true, val);
+                return ReplayValue.newLoopRestartValue(val);
             }
-            return new ReplayValueImpl<>(val);
+            return ReplayValue.newValue(val);
         };
     }
 }

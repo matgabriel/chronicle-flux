@@ -4,6 +4,7 @@ import static ch.streamly.chronicle.flux.util.ChronicleStoreCleanup.deleteStoreI
 import static java.time.Duration.ofSeconds;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +14,9 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+
 class ChronicleStoreTest {
-    private static final String PATH = "ChronicleStoreTest";
+    private static final String PREFIX = "ChronicleStoreTest";
     private static final String ONE = "one";
     private static final String TWO = "two";
     private static final String THREE = "three";
@@ -23,19 +25,20 @@ class ChronicleStoreTest {
     private static final DummyObject SECOND = new DummyObject(11000, TWO);
     private static final DummyObject THIRD = new DummyObject(12000, THREE);
     private static final DummyObject FOURTH = new DummyObject(15000, FOUR);
-    private static final Flux<DummyObject> source = Flux.just(FIRST, SECOND, THIRD, FOURTH
-    );
+    private static final Flux<DummyObject> source = Flux.just(FIRST, SECOND, THIRD, FOURTH);
     private ChronicleStore<DummyObject> store;
+    private String path;
 
     @BeforeEach
     void setUp() {
-        deleteStoreIfItExists(PATH);
-        store = new ChronicleStore<>(PATH, DummyObject::toBinary, DummyObject::fromBinary);
+        path = PREFIX + UUID.randomUUID().toString();
+        store = new ChronicleStore<>(path, DummyObject::toBinary, DummyObject::fromBinary);
     }
 
         @AfterEach
         void tearDown() {
             store.close();
+            deleteStoreIfItExists(path);
         }
 
     @Test

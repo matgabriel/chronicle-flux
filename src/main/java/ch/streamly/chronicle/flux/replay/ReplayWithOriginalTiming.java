@@ -5,6 +5,8 @@ import static java.time.Duration.ofMillis;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import ch.streamly.domain.Timed;
+import ch.streamly.domain.TimedValue;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
