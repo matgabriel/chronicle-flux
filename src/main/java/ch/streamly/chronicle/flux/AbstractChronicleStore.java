@@ -37,11 +37,15 @@ public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
     private final RollCycle rollCycle;
 
     protected AbstractChronicleStore(AbstractChronicleStoreBuilder<I> builder) {
-        String path = builder.path;
         serializer = builder.serializer;
         deserializer = builder.deserializer;
         rollCycle = builder.rollCycle;
-        this.queue = SingleChronicleQueueBuilder.binary(path).rollCycle(rollCycle).build();
+        this.queue = createQueue(builder.path);
+    }
+
+    //package private for testing
+    SingleChronicleQueue createQueue(String path) {
+        return SingleChronicleQueueBuilder.binary(path).rollCycle(rollCycle).build();
     }
 
     void close() {
@@ -84,7 +88,8 @@ public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
         try {
             while (!sink.isCancelled()) {
                 if (sink.requestedFromDownstream() > 0) {
-                    boolean present = tailer.readBytes(b -> sink.next(deserializeValue(b)));
+                    boolean present = tailer.readBytes(b ->
+                            sink.next(deserializeValue(b)));
                     if (!present) {
                         if (readerType == ReaderType.ONLY_HISTORY) {
                             sink.complete();
