@@ -9,7 +9,6 @@ import net.openhft.chronicle.bytes.BytesIn;
 /**
  * Implementation of a {@link FluxJournal} backed by a Chronicle Queue.
  * This journal respects the backpressure on the data streams it produces.
- *
  * All values saved in the journal are timed with the current time.
  *
  * @author mgabriel.
@@ -30,16 +29,16 @@ public class ChronicleJournal<T> extends AbstractChronicleStore<T, Timed<T>> imp
                 .deserializer(deserializer));
     }
 
-    private ChronicleJournal(ChronicleJournalBuilder<T> builder) {
-        super(builder);
-    }
-
     /**
      * @param <BT> data type.
      * @return a ChronicleStore builder.
      */
     public static <BT> ChronicleJournalBuilder<BT> newBuilder() {
         return new ChronicleJournalBuilder<>();
+    }
+
+    private ChronicleJournal(ChronicleJournalBuilder<T> builder) {
+        super(builder);
     }
 
     @Override
@@ -50,11 +49,6 @@ public class ChronicleJournal<T> extends AbstractChronicleStore<T, Timed<T>> imp
         System.arraycopy(time, 0, result, 0, time.length);
         System.arraycopy(val, 0, result, time.length, val.length);
         return result;
-    }
-
-    //package private for testing
-    long getCurrentTime() {
-        return System.currentTimeMillis();
     }
 
     @Override
@@ -72,6 +66,17 @@ public class ChronicleJournal<T> extends AbstractChronicleStore<T, Timed<T>> imp
 
     }
 
+    private static long fromByteArray(byte[] bytes) {
+        return (bytes[0] & 0xFFL) << 56
+                | (bytes[1] & 0xFFL) << 48
+                | (bytes[2] & 0xFFL) << 40
+                | (bytes[3] & 0xFFL) << 32
+                | (bytes[4] & 0xFFL) << 24
+                | (bytes[5] & 0xFFL) << 16
+                | (bytes[6] & 0xFFL) << 8
+                | (bytes[7] & 0xFFL);
+    }
+
     private static byte[] toByteArray(long value) {
         return new byte[] {
                 (byte) (value >> 56),
@@ -85,21 +90,23 @@ public class ChronicleJournal<T> extends AbstractChronicleStore<T, Timed<T>> imp
         };
     }
 
-    private static long fromByteArray(byte[] bytes){
-        return (bytes[0] & 0xFFL) << 56
-                | (bytes[1] & 0xFFL) << 48
-                | (bytes[2] & 0xFFL) << 40
-                | (bytes[3] & 0xFFL) << 32
-                | (bytes[4] & 0xFFL) << 24
-                | (bytes[5] & 0xFFL) << 16
-                | (bytes[6] & 0xFFL) << 8
-                | (bytes[7] & 0xFFL);
+    //package private for testing
+    long getCurrentTime() {
+        return System.currentTimeMillis();
     }
 
-    public static final class ChronicleJournalBuilder<T> extends AbstractChronicleStoreBuilder<T> {
+    public static final class ChronicleJournalBuilder<T>
+            extends AbstractChronicleStoreBuilder<ChronicleJournalBuilder<T>, ChronicleJournal<T>, T> {
         private ChronicleJournalBuilder() {
             super();
         }
+
+        @Override
+        protected ChronicleJournalBuilder<T> getThis() {
+            return this;
+        }
+
+        @Override
         public ChronicleJournal<T> build() {
             return new ChronicleJournal<>(this);
         }

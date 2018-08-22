@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import ch.streamly.chronicle.flux.AbstractChronicleStore.AbstractChronicleStoreBuilder;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
@@ -59,11 +58,10 @@ class AbstractChronicleStoreTest {
         when(wireStore.file()).thenReturn(file);
         when(file.delete()).thenReturn(true);
 
-        AbstractChronicleStoreBuilder<String> builder = new AbstractChronicleStoreBuilder<String>() {
-        };
+        ChronicleStore.ChronicleStoreBuilder<String> builder = ChronicleStore.newBuilder();
         builder.rollCycle(rollCycle);
 
-        store = new AbstractChronicleStore<String, String>(builder) {
+        store = new ChronicleStore<String>(builder) {
 
             @Override
             SingleChronicleQueue createQueue(String path) {
@@ -86,7 +84,7 @@ class AbstractChronicleStoreTest {
     }
 
     @Test
-    @DisplayName("tests that the an exception on file deletion is swallowed")
+    @DisplayName("tests that an exception on file deletion is swallowed")
     void shouldSwallowExceptionOnFileDelete() {
         when(file.delete()).thenThrow(new RuntimeException("Simulated for unit test"));
         Disposable sub = store.retrieveAll(true).subscribe();
@@ -131,6 +129,13 @@ class AbstractChronicleStoreTest {
     void testNullFile() {
         when(queue.storeForCycle(anyInt(), anyLong(), anyBoolean())).thenReturn(wireStore);
         when(wireStore.file()).thenReturn(null);
+        subscribeToValues();
+    }
+
+    @Test
+    @DisplayName("tests that an exception thrown when reading from Chronicle is swallowed")
+    void testTailerException() {
+        when(tailer.readBytes(any(ReadBytesMarshallable.class))).thenThrow(new RuntimeException("simulated")).thenReturn(true);
         subscribeToValues();
     }
 }

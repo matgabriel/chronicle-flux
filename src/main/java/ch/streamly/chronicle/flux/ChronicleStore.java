@@ -26,16 +26,17 @@ public class ChronicleStore<T> extends AbstractChronicleStore<T, T> {
                 .deserializer(deserializer));
     }
 
-    private ChronicleStore(ChronicleStoreBuilder<T> builder) {
-        super(builder);
-    }
-
     /**
      * @param <BT> data type.
      * @return a ChronicleStore builder.
      */
     public static <BT> ChronicleStoreBuilder<BT> newBuilder() {
         return new ChronicleStoreBuilder<>();
+    }
+
+    //package private for testing
+    ChronicleStore(ChronicleStoreBuilder<T> builder) {
+        super(builder);
     }
 
     @Override
@@ -46,14 +47,21 @@ public class ChronicleStore<T> extends AbstractChronicleStore<T, T> {
         return deserializer.apply(bytes);
     }
 
-    public static final class ChronicleStoreBuilder<T> extends AbstractChronicleStoreBuilder<T> {
+    public static final class ChronicleStoreBuilder<T>
+            extends AbstractChronicleStoreBuilder<ChronicleStoreBuilder<T>, ChronicleStore<T>, T> {
 
         private ChronicleStoreBuilder() {
             super();
         }
 
+        @Override
+        protected ChronicleStoreBuilder<T> getThis() {
+            return this;
+        }
+
+        @Override
         public ChronicleStore<T> build() {
-            return new ChronicleStore<T>(this);
+            return new ChronicleStore<>(this);
         }
     }
 }

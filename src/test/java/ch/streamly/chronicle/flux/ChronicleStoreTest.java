@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import net.openhft.chronicle.queue.RollCycles;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -44,6 +45,22 @@ class ChronicleStoreTest {
     @Test
     @DisplayName("tests that a data stream is store in the Chronicle store")
     void shouldStoreStream() {
+        testBasicOperations();
+    }
+
+    @Test
+    @DisplayName("tests building the chronicle store with its builder")
+    void testWithBuilder() {
+        store = ChronicleStore.<DummyObject>newBuilder()
+                .path(path)
+                .serializer(DummyObject::toBinary)
+                .deserializer(DummyObject::fromBinary)
+                .rollCycle(RollCycles.DAILY)
+                .build();
+        testBasicOperations();
+    }
+
+    private void testBasicOperations() {
         store.store(source);
         StepVerifier.create(store.retrieveAll())
                 .expectSubscription()

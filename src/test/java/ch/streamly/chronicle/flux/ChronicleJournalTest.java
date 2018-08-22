@@ -60,6 +60,21 @@ class ChronicleJournalTest {
     @Test
     @DisplayName("tests that a timed data stream is stored in the Chronicle journal")
     void shouldStoreStreamWithTimeStamps() {
+        verifyBasicOperations();
+    }
+
+    @Test
+    @DisplayName("tests store creation with builder")
+    void testStoreCreationWithBuilder() {
+        journal = ChronicleJournal.<DummyObject>newBuilder()
+                .path(path)
+                .serializer(DummyObject::toBinary)
+                .deserializer(DummyObject::fromBinary)
+                .build();
+
+    }
+
+    private void verifyBasicOperations() {
         journal.store(source);
         StepVerifier.create(journal.retrieveAll())
                 .expectSubscription()

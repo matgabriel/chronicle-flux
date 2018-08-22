@@ -30,13 +30,13 @@ import reactor.core.publisher.FluxSink;
  */
 public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractChronicleStore.class);
-
-    private final Function<I, byte[]> serializer;
     protected final Function<byte[], I> deserializer;
+    private final Function<I, byte[]> serializer;
     private final SingleChronicleQueue queue;
     private final RollCycle rollCycle;
 
-    protected AbstractChronicleStore(AbstractChronicleStoreBuilder<I> builder) {
+    protected <S extends AbstractChronicleStore<I, O>, B extends AbstractChronicleStoreBuilder<B, S, I>> AbstractChronicleStore(
+            AbstractChronicleStoreBuilder<B, S, I> builder) {
         serializer = builder.serializer;
         deserializer = builder.deserializer;
         rollCycle = builder.rollCycle;
@@ -69,17 +69,28 @@ public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
         return serializer.apply(v);
     }
 
-    protected abstract O deserializeValue(BytesIn rawData);
-
     @Override
     public void store(I item) {
         ExcerptAppender appender = queue.acquireAppender();
         storeValue(appender, item);
     }
 
-    private enum ReaderType {
-        ALL,
-        ONLY_HISTORY
+    @Override
+    public Flux<O> retrieveAll(boolean deleteAfterRead) {
+        return Flux.create(sink -> launchTailer(sink, ReaderType.ALL, deleteAfterRead));
+    }
+
+    private void launchTailer(FluxSink<O> sink, ReaderType readerType, boolean deleteAfterRead) {
+        launchTailer(sink, queue.createTailer(), readerType, deleteAfterRead);
+    }
+
+    private void launchTailer(FluxSink<O> sink, ExcerptTailer tailer, ReaderType readerType, boolean deleteAfterRead) {
+        String path = tailer.queue().file().getAbsolutePath();
+        Thread t = new Thread(
+                () -> readTailer(tailer, sink, readerType, deleteAfterRead),
+                "ChronicleStoreRetrieve_" + path);
+        t.setDaemon(true);
+        t.start();
     }
 
     private void readTailer(ExcerptTailer tailer, FluxSink<O> sink,
@@ -112,6 +123,8 @@ public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
             LOGGER.error("Error while tailing on queue {}", tailer.queue().file().getAbsolutePath(), e);
         }
     }
+
+    protected abstract O deserializeValue(BytesIn rawData);
 
     private void waitMillis(long time) {
         try {
@@ -154,24 +167,6 @@ public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
     }
 
     @Override
-    public Flux<O> retrieveAll(boolean deleteAfterRead) {
-        return Flux.create(sink -> launchTailer(sink, ReaderType.ALL, deleteAfterRead));
-    }
-
-    private void launchTailer(FluxSink<O> sink, ReaderType readerType, boolean deleteAfterRead) {
-        launchTailer(sink, queue.createTailer(), readerType, deleteAfterRead);
-    }
-
-    private void launchTailer(FluxSink<O> sink, ExcerptTailer tailer, ReaderType readerType, boolean deleteAfterRead) {
-        String path = tailer.queue().file().getAbsolutePath();
-        Thread t = new Thread(
-                () -> readTailer(tailer, sink, readerType, deleteAfterRead),
-                "ChronicleStoreRetrieve_" + path);
-        t.setDaemon(true);
-        t.start();
-    }
-
-    @Override
     public Flux<O> retrieveHistory() {
         return Flux.create(sink -> launchTailer(sink, ReaderType.ONLY_HISTORY, false));
     }
@@ -188,7 +183,12 @@ public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
         return new ReplayFlux<>(historySource, timestampExtractor);
     }
 
-    public abstract static class AbstractChronicleStoreBuilder<T> {
+    private enum ReaderType {
+        ALL,
+        ONLY_HISTORY
+    }
+
+    public abstract static class AbstractChronicleStoreBuilder<B extends AbstractChronicleStoreBuilder<B, R, T>, R extends AbstractChronicleStore, T> {
         private String path;
         private Function<T, byte[]> serializer;
         private Function<byte[], T> deserializer;
@@ -202,36 +202,40 @@ public abstract class AbstractChronicleStore<I, O> implements FluxStore<I, O> {
          *             This path should not be a network file system (see <a href="https://github.com/OpenHFT/Chronicle-Queue">the Chronicle queue documentation for more detail</a>
          * @return this builder
          */
-        public AbstractChronicleStoreBuilder<T> path(String path) {
+        public B path(String path) {
             this.path = path;
-            return this;
+            return getThis();
         }
+
+        protected abstract B getThis();
 
         /**
          * @param serializer data serializer
          * @return this builder
          */
-        public AbstractChronicleStoreBuilder<T> serializer(Function<T, byte[]> serializer) {
+        public B serializer(Function<T, byte[]> serializer) {
             this.serializer = serializer;
-            return this;
+            return getThis();
         }
 
         /**
          * @param deserializer data deserializer
          * @return this builder
          */
-        public AbstractChronicleStoreBuilder<T> deserializer(Function<byte[], T> deserializer) {
+        public B deserializer(Function<byte[], T> deserializer) {
             this.deserializer = deserializer;
-            return this;
+            return getThis();
         }
 
         /**
          * @param rollCycle roll cycle for the files
          * @return this builder
          */
-        public AbstractChronicleStoreBuilder<T> rollCycle(RollCycle rollCycle) {
+        public B rollCycle(RollCycle rollCycle) {
             this.rollCycle = rollCycle;
-            return this;
+            return getThis();
         }
+
+        public abstract R build();
     }
 }
