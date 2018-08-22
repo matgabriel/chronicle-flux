@@ -2,7 +2,7 @@
 
 
 [![travis](https://travis-ci.org/matgabriel/chronicle-flux.svg?branch=master)](https://travis-ci.org/matgabriel/chronicle-flux/)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.streamly/chronicle-flux/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ch.streamly/chronicle-flux)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.streamly/chronicle-flux/badge.svg)](http://repo1.maven.org/maven2/ch/streamly/chronicle-flux/)
 [![codecov](https://codecov.io/gh/matgabriel/chronicle-flux/branch/master/graph/badge.svg)](https://codecov.io/gh/matgabriel/chronicle-flux)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7ad90e1ea60742c2bdff2d3c00c94b4c)](https://www.codacy.com/project/matgabriel/chronicle-flux/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=matgabriel/chronicle-flux&amp;utm_campaign=Badge_Grade_Dashboard)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
