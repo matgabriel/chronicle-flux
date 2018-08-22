@@ -2,8 +2,10 @@
 
 
 [![travis](https://travis-ci.org/matgabriel/chronicle-flux.svg?branch=master)](https://travis-ci.org/matgabriel/chronicle-flux/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.streamly/chronicle-flux/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ch.streamly/chronicle-flux)
 [![codecov](https://codecov.io/gh/matgabriel/chronicle-flux/branch/master/graph/badge.svg)](https://codecov.io/gh/matgabriel/chronicle-flux)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7ad90e1ea60742c2bdff2d3c00c94b4c)](https://www.codacy.com/project/matgabriel/chronicle-flux/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=matgabriel/chronicle-flux&amp;utm_campaign=Badge_Grade_Dashboard)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # chronicle-flux
 
@@ -28,6 +30,22 @@ This project can be useful for different use cases:
 - performance testing, to replay the events at higher speeds.
 - a simple alternative to Kafka for basic uses cases: no need to install anything, it's all persisted on disk :smiley:
 
+
+### Getting started
+#### For Gradle users:
+```
+compile 'ch.streamly:chronicle-flux:1.0.0'
+```
+
+#### For Maven users:
+```
+<dependency>
+    <groupId>ch.streamly</groupId> 
+    <artifactId>chronicle-flux</artifactId> 
+    <version>1.0.0</version> 
+    <type>pom</type> 
+</dependency>
+```
 
 ## Example usage
 
@@ -76,8 +94,30 @@ chronicleStore.replayHistory(DummyObject::timestamp)
 ```
 
 In order to replay data with the original timing, we need to provide a function to extract the epoch time (in milliseconds) from the data.  
-Chronicle-flux could potentially add a timestamp to the events when they are persisted, but this would be a poor design choice since the data would be timestamped at the very end of the chain, possibly after passing through several queues. It is in general a better idea to add a timestamp on the events as soon as they enter the system in order to have an accurate time.  
+  
 
+### Chronicle Store vs Chronicle Journal
+
+A Chronicle Journal adds a timestamp to every value saved in the journal, and gives you a stream of Timed values.
+
+This means that you can replay the values with the timestamps assigned by the journal without providing a custom timestamp extractor.
+
+```java
+ChronicleJournal<DummyObject> chronicleJournal = new ChronicleJournal<>(PATH, DummyObject::toBinary, DummyObject::fromBinary);
+
+chronicleJournal.replayHistory()
+                .withOriginalTiming()
+                .inLoop()
+                .doOnNext(i -> System.out.println(Instant.now() + " " + i))
+                .blockLast();
+
+```
+
+Although this is convenient, it is usually a better idea to time the values as soon as they enter the application. 
+When the journal adds the timestamp, your values might have gone through several queues and delays, resulting in a meaningless timestamp.
+
+
+ 
 
 ### Runnable demo
 
